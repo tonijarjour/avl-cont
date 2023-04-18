@@ -10,7 +10,7 @@ for n in 0..1000 {
 }
 
 // Remove a value.
-tree.remove(511);
+assert_eq!(tree.remove(511).unwrap(), 511);
 assert_eq!(tree.contains(511), None);
 
 // Check if a value is in the tree, returns its index.
