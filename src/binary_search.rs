@@ -77,9 +77,9 @@ impl<T> Tree<T> {
 
     // Removes None values from the end of the data Vec.
     // Removes corresponding indices from the free Vec.
-    fn clean_tail(&mut self) -> Option<()> {
+    fn clean_tail(&mut self) {
         let mut popped = Vec::new();
-        while self.data.last()?.is_none() {
+        while self.data.last().unwrap().is_none() {
             self.data.pop();
             popped.push(self.data.len());
         }
@@ -89,34 +89,30 @@ impl<T> Tree<T> {
                 false
             })
         });
-
-        Some(())
     }
 
-    fn update_and_balance(&mut self, mut visited_indices: Vec<usize>) -> Option<()> {
+    fn update_and_balance(&mut self, mut visited_indices: Vec<usize>) {
         // This is guarenteed to run at least once.
         // The last run is always on the root index.
         while let Some(index) = visited_indices.pop() {
-            let balance_factor = self.update_height(index)?;
-            let new_parent = self.balance_node(index, balance_factor)?;
+            let balance_factor = self.update_height(index);
+            let new_parent = self.balance_node(index, balance_factor);
 
             // Set the grandfather to point to the subtree's new root.
             match visited_indices.last() {
                 Some(n) => {
-                    let grandfather_data = self.data[*n].as_ref()?;
+                    let grandfather_data = self.data[*n].as_ref().unwrap();
                     let child_is_left = grandfather_data.left.map_or(false, |left| index == left);
 
                     if child_is_left {
-                        self.data[*n].as_mut()?.left = Some(new_parent);
+                        self.data[*n].as_mut().unwrap().left = Some(new_parent);
                     } else {
-                        self.data[*n].as_mut()?.right = Some(new_parent);
+                        self.data[*n].as_mut().unwrap().right = Some(new_parent);
                     }
                 }
                 None => self.root = new_parent,
             }
         }
-
-        Some(())
     }
 
     // Update a node's height to be 1 + max_height between its children.
@@ -126,22 +122,22 @@ impl<T> Tree<T> {
     // a height of 3 while the left has 1, the balance factor would be
     // calculated as 2. This value or its inverse would require the tree
     // to be rebalanced.
-    fn update_height(&mut self, index: usize) -> Option<i8> {
-        let node_data = self.data[index].as_ref()?;
+    fn update_height(&mut self, index: usize) -> i8 {
+        let node_data = self.data[index].as_ref().unwrap();
 
         let left_height: i8 = match node_data.left {
-            Some(n) => self.data[n].as_ref()?.height,
+            Some(n) => self.data[n].as_ref().unwrap().height,
             None => -1,
         };
         let right_height: i8 = match node_data.right {
-            Some(n) => self.data[n].as_ref()?.height,
+            Some(n) => self.data[n].as_ref().unwrap().height,
             None => -1,
         };
 
-        let node_data = self.data[index].as_mut()?;
+        let node_data = self.data[index].as_mut().unwrap();
         node_data.height = 1 + cmp::max(left_height, right_height);
 
-        Some(right_height - left_height)
+        right_height - left_height
     }
 
     // Balance a node if one of its sides is two nodes taller than the other.
@@ -150,87 +146,87 @@ impl<T> Tree<T> {
     // have a child in the same direction: A -> B and C <- B, node A is set
     // to point to node C and C to B: A -> C -> B, then node C is set to
     // point to node A: A <- C -> B. Returns the new parent's index.
-    fn balance_node(&mut self, index: usize, balance_factor: i8) -> Option<usize> {
-        let node_data = self.data[index].as_ref()?;
+    fn balance_node(&mut self, index: usize, balance_factor: i8) -> usize {
+        let node_data = self.data[index].as_ref().unwrap();
         match balance_factor {
             -2 => {
-                let left_node = self.data[node_data.left?].as_ref()?;
+                let left_node = self.data[node_data.left.unwrap()].as_ref().unwrap();
                 match left_node.left {
                     Some(_) => self.rotate_right(index),
                     None => self.rotate_left_right(index),
                 }
             }
             2 => {
-                let right_node = self.data[node_data.right?].as_ref()?;
+                let right_node = self.data[node_data.right.unwrap()].as_ref().unwrap();
                 match right_node.right {
                     Some(_) => self.rotate_left(index),
                     None => self.rotate_right_left(index),
                 }
             }
-            _ => Some(index),
+            _ => index,
         }
     }
 
-    fn rotate_right(&mut self, index: usize) -> Option<usize> {
-        let left_index = self.data[index].as_ref()?.left?;
-        let left_right_index = self.data[left_index].as_ref()?.right;
+    fn rotate_right(&mut self, index: usize) -> usize {
+        let left_index = self.data[index].as_ref().unwrap().left.unwrap();
+        let left_right_index = self.data[left_index].as_ref().unwrap().right;
 
-        let node_data = self.data[index].as_mut()?;
+        let node_data = self.data[index].as_mut().unwrap();
         node_data.left = left_right_index;
 
-        let left_data = self.data[left_index].as_mut()?;
+        let left_data = self.data[left_index].as_mut().unwrap();
         left_data.right = Some(index);
 
         self.update_height(index);
         self.update_height(left_index);
 
-        Some(left_index)
+        left_index
     }
 
-    fn rotate_left(&mut self, index: usize) -> Option<usize> {
-        let right_index = self.data[index].as_ref()?.right?;
-        let right_left_index = self.data[right_index].as_ref()?.left;
+    fn rotate_left(&mut self, index: usize) -> usize {
+        let right_index = self.data[index].as_ref().unwrap().right.unwrap();
+        let right_left_index = self.data[right_index].as_ref().unwrap().left;
 
-        let node_data = self.data[index].as_mut()?;
+        let node_data = self.data[index].as_mut().unwrap();
         node_data.right = right_left_index;
 
-        let right_data = self.data[right_index].as_mut()?;
+        let right_data = self.data[right_index].as_mut().unwrap();
         right_data.left = Some(index);
 
         self.update_height(index);
         self.update_height(right_index);
 
-        Some(right_index)
+        right_index
     }
 
-    fn rotate_left_right(&mut self, index: usize) -> Option<usize> {
-        let left_index = self.data[index].as_ref()?.left?;
+    fn rotate_left_right(&mut self, index: usize) -> usize {
+        let left_index = self.data[index].as_ref().unwrap().left.unwrap();
 
-        self.data[index].as_mut()?.left = self.rotate_left(left_index);
+        self.data[index].as_mut().unwrap().left = Some(self.rotate_left(left_index));
         self.rotate_right(index)
     }
 
-    fn rotate_right_left(&mut self, index: usize) -> Option<usize> {
-        let right_index = self.data[index].as_ref()?.right?;
+    fn rotate_right_left(&mut self, index: usize) -> usize {
+        let right_index = self.data[index].as_ref().unwrap().right.unwrap();
 
-        self.data[index].as_mut()?.right = self.rotate_right(right_index);
+        self.data[index].as_mut().unwrap().right = Some(self.rotate_right(right_index));
         self.rotate_left(index)
     }
 }
 
 impl<T: Ord> Tree<T> {
     /// Returns the index of VALUE if it is found.
-    pub fn contains(&self, value: &T) -> Option<usize> {
+    pub fn contains(&self, value: T) -> Option<usize> {
         if self.is_empty() {
             return None;
         }
 
-        let parent_index = match self.contains_helper(value) {
-            Some((true, Some(n))) => *n.last()?,
-            Some((true, None)) => return Some(self.root),
-            _ => return None,
+        let parent_index = match self.contains_helper(&value) {
+            (true, Some(n)) => *n.last().unwrap(),
+            (true, None) => return Some(self.root),
+            (false, _) => return None,
         };
-        let parent_data = self.data[parent_index].as_ref()?;
+        let parent_data = self.data[parent_index].as_ref().unwrap();
 
         match value.cmp(&parent_data.value) {
             Ordering::Less => parent_data.left,
@@ -241,12 +237,12 @@ impl<T: Ord> Tree<T> {
 
     // Returns a bool and all visited indices up to
     // and including the (prospective) parent index.
-    fn contains_helper(&self, value: &T) -> Option<(bool, Option<Vec<usize>>)> {
+    fn contains_helper(&self, value: &T) -> (bool, Option<Vec<usize>>) {
         let mut current_index = self.root;
-        let mut current_data = self.data[current_index].as_ref()?;
+        let mut current_data = self.data[current_index].as_ref().unwrap();
 
         if value == &current_data.value {
-            return Some((true, None));
+            return (true, None);
         }
 
         let mut visited_indices = vec![current_index];
@@ -257,24 +253,24 @@ impl<T: Ord> Tree<T> {
             current_index = match value.cmp(&current_data.value) {
                 Ordering::Less => match current_data.left {
                     Some(n) => n,
-                    None => return Some((false, Some(visited_indices))),
+                    None => return (false, Some(visited_indices)),
                 },
                 Ordering::Greater => match current_data.right {
                     Some(n) => n,
-                    None => return Some((false, Some(visited_indices))),
+                    None => return (false, Some(visited_indices)),
                 },
                 Ordering::Equal => current_index,
             };
 
-            current_data = self.data[current_index].as_ref()?;
+            current_data = self.data[current_index].as_ref().unwrap();
             if value == &current_data.value {
-                return Some((true, Some(visited_indices)));
+                return (true, Some(visited_indices));
             }
 
             visited_indices.push(current_index);
         }
 
-        Some((false, Some(visited_indices)))
+        (false, Some(visited_indices))
     }
 
     /// Insert VALUE into the tree. Must be unique. Returns the index that was
@@ -286,20 +282,20 @@ impl<T: Ord> Tree<T> {
             return Some(0);
         }
 
-        let Some((false, Some(visited_indices))) = self.contains_helper(&value) else {
+        let (false, Some(visited_indices)) = self.contains_helper(&value) else {
             return None;
         };
-        let parent_index = *visited_indices.last()?;
+        let parent_index = *visited_indices.last().unwrap();
         let insert_index;
 
-        match &value.cmp(&self.data[parent_index].as_ref()?.value) {
+        match &value.cmp(&self.data[parent_index].as_ref().unwrap().value) {
             Ordering::Less => {
                 insert_index = self.insert_helper(value);
-                self.data[parent_index].as_mut()?.left = Some(insert_index);
+                self.data[parent_index].as_mut().unwrap().left = Some(insert_index);
             }
             Ordering::Greater => {
                 insert_index = self.insert_helper(value);
-                self.data[parent_index].as_mut()?.right = Some(insert_index);
+                self.data[parent_index].as_mut().unwrap().right = Some(insert_index);
             }
             Ordering::Equal => unreachable!(),
         }
@@ -310,37 +306,37 @@ impl<T: Ord> Tree<T> {
     }
 
     /// Remove VALUE from the tree.
-    pub fn remove(&mut self, value: &T) -> Option<T> {
+    pub fn remove(&mut self, value: T) -> Option<T> {
         if self.is_empty() {
             return None;
         }
 
-        let is_root = match self.remove_root_helper(value) {
-            Some((b, None)) => b,
-            Some((true, Some(return_val))) => return Some(return_val),
-            _ => return None,
+        let is_root = match self.remove_root_helper(&value) {
+            (b, None) => b,
+            (true, Some(return_val)) => return Some(return_val),
+            _ => unreachable!(),
         };
 
-        let mut visited_indices = match self.contains_helper(value) {
-            Some((true, None)) => vec![self.root],
-            Some((true, Some(n))) => n,
-            _ => return None,
+        let mut visited_indices = match self.contains_helper(&value) {
+            (true, None) => vec![self.root],
+            (true, Some(n)) => n,
+            (false, _) => return None,
         };
-        let parent_index = *visited_indices.last()?;
-        let parent_data = self.data[parent_index].as_ref()?;
-        let child_is_left = value < &parent_data.value;
+        let parent_index = *visited_indices.last().unwrap();
+        let parent_data = self.data[parent_index].as_ref().unwrap();
+        let child_is_left = value < parent_data.value;
 
         let val_index = match (is_root, child_is_left) {
             (true, _) => self.root,
-            (false, true) => parent_data.left?,
-            (false, false) => parent_data.right?,
+            (false, true) => parent_data.left.unwrap(),
+            (false, false) => parent_data.right.unwrap(),
         };
-        let val_data = self.data[val_index].as_ref()?;
+        let val_data = self.data[val_index].as_ref().unwrap();
         let return_val;
 
         if let (Some(val_left), Some(val_right)) = (val_data.left, val_data.right) {
-            let mut left_data = self.data[val_left].as_ref()?;
-            let mut right_data = self.data[val_right].as_ref()?;
+            let mut left_data = self.data[val_left].as_ref().unwrap();
+            let mut right_data = self.data[val_right].as_ref().unwrap();
 
             let mut current_index;
 
@@ -360,14 +356,17 @@ impl<T: Ord> Tree<T> {
                 while let Some(n) = left_data.right {
                     visited_indices.push(current_index);
                     current_index = n;
-                    left_data = self.data[current_index].as_ref()?;
+                    left_data = self.data[current_index].as_ref().unwrap();
                 }
 
                 if let Some(n) = left_data.left {
                     self.data.swap(current_index, n);
                     n
                 } else {
-                    self.data[*visited_indices.last()?].as_mut()?.right = None;
+                    self.data[*visited_indices.last().unwrap()]
+                        .as_mut()
+                        .unwrap()
+                        .right = None;
                     current_index
                 }
             } else {
@@ -375,21 +374,25 @@ impl<T: Ord> Tree<T> {
                 while let Some(n) = right_data.left {
                     visited_indices.push(current_index);
                     current_index = n;
-                    right_data = self.data[current_index].as_ref()?;
+                    right_data = self.data[current_index].as_ref().unwrap();
                 }
 
                 if let Some(n) = right_data.right {
                     self.data.swap(current_index, n);
                     n
                 } else {
-                    self.data[*visited_indices.last()?].as_mut()?.left = None;
+                    self.data[*visited_indices.last().unwrap()]
+                        .as_mut()
+                        .unwrap()
+                        .left = None;
                     current_index
                 }
             };
-
             self.free.push(replace_index);
             let replace = Some(Node {
-                value: mem::replace(&mut self.data[replace_index], None)?.value,
+                value: mem::replace(&mut self.data[replace_index], None)
+                    .unwrap()
+                    .value,
                 // If the value at the index is None, set pointer to None.
                 left: self.data[val_left].as_ref().map(|_| val_left),
                 right: self.data[val_right].as_ref().map(|_| val_right),
@@ -398,22 +401,24 @@ impl<T: Ord> Tree<T> {
                 height: 0,
             });
 
-            return_val = mem::replace(&mut self.data[val_index], replace)?.value;
+            return_val = mem::replace(&mut self.data[val_index], replace)
+                .unwrap()
+                .value;
         } else {
             if let Some(child_index) = val_data.left.xor(val_data.right) {
                 if child_is_left {
-                    self.data[parent_index].as_mut()?.left = Some(child_index);
+                    self.data[parent_index].as_mut().unwrap().left = Some(child_index);
                 } else {
-                    self.data[parent_index].as_mut()?.right = Some(child_index);
+                    self.data[parent_index].as_mut().unwrap().right = Some(child_index);
                 }
             } else if child_is_left {
-                self.data[parent_index].as_mut()?.left = None;
+                self.data[parent_index].as_mut().unwrap().left = None;
             } else {
-                self.data[parent_index].as_mut()?.right = None;
+                self.data[parent_index].as_mut().unwrap().right = None;
             }
 
             self.free.push(val_index);
-            return_val = mem::replace(&mut self.data[val_index], None)?.value;
+            return_val = mem::replace(&mut self.data[val_index], None).unwrap().value;
         }
 
         self.update_and_balance(visited_indices);
@@ -423,34 +428,33 @@ impl<T: Ord> Tree<T> {
     }
 
     // Handling trivial cases for removing a value at root.
-    fn remove_root_helper(&mut self, value: &T) -> Option<(bool, Option<T>)> {
-        let return_val;
-        let root_data = self.data[self.root].as_ref()?;
+    fn remove_root_helper(&mut self, value: &T) -> (bool, Option<T>) {
+        let root_data = self.data[self.root].as_ref().unwrap();
         if value == &root_data.value {
             if self.size == 1 {
-                return_val = self.data.pop()??.value;
+                let return_val = self.data.pop().unwrap().unwrap().value;
                 self.free.clear();
                 self.data.clear();
-                self.size = 0;
                 self.root = 0;
+                self.size = 0;
 
-                return Some((true, Some(return_val)));
+                return (true, Some(return_val));
             }
 
             if let Some(new_root) = root_data.left.xor(root_data.right) {
-                return_val = mem::replace(&mut self.data[self.root], None)?.value;
-                self.size -= 1;
+                let return_val = mem::replace(&mut self.data[self.root], None).unwrap().value;
                 self.free.push(self.root);
                 self.root = new_root;
-                self.clean_tail();
+                self.size -= 1;
 
-                return Some((true, Some(return_val)));
+                self.clean_tail();
+                return (true, Some(return_val));
             }
 
-            return Some((true, None));
+            return (true, None);
         }
 
-        Some((false, None))
+        (false, None)
     }
 }
 
@@ -476,7 +480,7 @@ impl<T> Iterator for Iter<T> {
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(current) = self.queue.pop_front() {
-            let current = mem::replace(&mut self.data[current], None)?;
+            let current = mem::replace(&mut self.data[current], None).unwrap();
 
             if let Some(n) = current.left {
                 self.queue.push_back(n);

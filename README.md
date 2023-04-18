@@ -10,11 +10,11 @@ for n in 0..1000 {
 }
 
 // Remove a value.
-assert_eq!(tree.remove(&511).unwrap(), 511);
-assert_eq!(tree.contains(&511), None);
+assert_eq!(tree.remove(511).unwrap(), 511);
+assert_eq!(tree.contains(511), None);
 
 // Check if a value is in the tree, returns its index.
-let value_index = tree.contains(&732).unwrap();
+let value_index = tree.contains(732).unwrap();
 
 // Get a reference to the value.
 assert_eq!(tree.get(value_index).unwrap(), &732);
