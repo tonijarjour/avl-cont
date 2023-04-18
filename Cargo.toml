@@ -1,6 +1,6 @@
 [package]
 name = "avl-cont"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Toni Jarjour"]
 homepage = "https://github.com/tonijarjour/avl-cont"
