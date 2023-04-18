@@ -318,7 +318,7 @@ impl<T: Ord> Tree<T> {
         let is_root = match self.remove_root_helper(value) {
             Some((b, None)) => b,
             Some((true, Some(return_val))) => return Some(return_val),
-            _ => unreachable!(),
+            _ => return None,
         };
 
         let mut visited_indices = match self.contains_helper(value) {
