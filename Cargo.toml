@@ -1,0 +1,16 @@
+[package]
+name = "avl-cont"
+version = "0.1.0"
+edition = "2021"
+authors = ["Toni Jarjour"]
+homepage = "https://github.com/tonijarjour/avl-cont"
+repository = "https://github.com/tonijarjour/avl-cont"
+description = "A contiguous AVL Tree."
+keywords = ["collections", "data-structures", "algorithms", "binary-search-tree", "tree"]
+categories = ["algorithms", "data-structures"]
+readme = "README.md"
+license = "GPL-3.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
