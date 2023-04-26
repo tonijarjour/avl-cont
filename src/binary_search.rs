@@ -32,13 +32,6 @@ pub struct Tree<T> {
 
 impl<T> Default for Tree<T> {
     fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl<T> Tree<T> {
-    #[must_use]
-    pub const fn new() -> Self {
         Self {
             data: Vec::new(),
             free: Vec::new(),
@@ -46,7 +39,9 @@ impl<T> Tree<T> {
             size: 0,
         }
     }
+}
 
+impl<T> Tree<T> {
     #[must_use]
     pub const fn len(&self) -> usize {
         self.size
